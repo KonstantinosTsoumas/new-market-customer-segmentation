@@ -1,5 +1,4 @@
 import unittest
-import pandas as pd
 import os
 from src.data_encoding import data_encoding
 
