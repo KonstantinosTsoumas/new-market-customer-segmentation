@@ -1,5 +1,5 @@
-import unittest
 import os
+sys.path.append('../src')
 from src.data_encoding import data_encoding
 
 # Create the example dataset
