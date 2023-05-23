@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import category_encoders as ce
 from sklearn.preprocessing import LabelEncoder
-from src import config
+import config
 
 def label_encoding(data, columns):
     """
