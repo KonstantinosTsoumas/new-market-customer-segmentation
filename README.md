@@ -74,17 +74,21 @@ The goal of this project is to develop a machine learning model that can predict
 git clone <repository-url>
 ```
 
-### 2. Run main.py 
+### 2. Navigate to "src"
+```
+git cd src
+```
+### 3. Run main.py 
 
 ```
 python src/main.py
 ```
 
-### 3. Review the results:
+### 4. Review the results:
 
 Analyze the predicted customer segments for the new potential customers and use them for targeted marketing strategies.
 
-### 4. Modify and extend:
+### 5. Modify and extend:
 
 Feel free to modify the code and adapt it to your specific needs.
 Add additional tests in the tests directory to ensure the correctness of the code.
