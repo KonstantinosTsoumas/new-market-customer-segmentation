@@ -4,9 +4,9 @@ import config
 import argparse
 from data_cleaning import clean_missing_values, visualize_missing_values
 from data_encoding import data_encoding
-from data_scaler import scale_variables
 from data_transformation import convert_to_integer, perform_binning
 from create_folds import create_folds
+from correlation_analysis import perform_correlation_analysis
 
 # Initialize ArgumentParser class of argparse
 # and take input from the command line
@@ -45,6 +45,9 @@ df_encoded = data_encoding("OneHotEncoding", df_cleaned, encoding_columns)
 
 # Dropping 'ID' to avoid redundancy and reduce multicollinearity
 df_encoded.drop('ID', axis=1, inplace=True)
+
+# Check correlations between variables after encoding
+perform_correlation_analysis(df_encoded)
 
 # Create folds
 df_train_folds = create_folds(df_encoded, args.n_splits)
