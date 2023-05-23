@@ -81,7 +81,12 @@ git cd src
 ### 3. Run main.py 
 
 ```
-python src/main.py
+python main.py
+```
+The number of created folds is by default 5.
+If you want to specify otherwise you may do so by (example for 2 splits):
+```
+python main.py --n_splits 2
 ```
 
 ### 4. Review the results:
