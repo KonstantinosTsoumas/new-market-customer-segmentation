@@ -6,7 +6,7 @@ import model_dispatcher
 import joblib
 import argparse
 from sklearn.metrics import classification_report
-from visualize_models import visualize_functions
+from visualize_models import visualize_functions, plot_classification_report
 
 def run(fold, model):
     """
@@ -48,6 +48,15 @@ def run(fold, model):
 
     # print classification results
     print(f"\033[1m\033[4mClassification report:\033[0m\n{classification_report(y_valid, preds)}")
+    # Specify the file path to save the figure
+    figure_path = os.path.join(config.MODELS_FOLDER, f"{model}.png")
+
+    # Create the plot
+    fig, ax = plot_classification_report(y_valid, preds,
+                                         title='Multi class classification report',
+                                         figsize=(8, 6), dpi=70,
+                                         target_names=["A", "B", "C", "D"],
+                                         save_fig_path=figure_path)
 
     # save the model
     joblib.dump(
@@ -57,7 +66,7 @@ def run(fold, model):
 
     # visualize the model if specified in the visualize_functions dictionary
     if model in visualize_functions and visualize_functions[model] is not None:
-        visualize_functions[model](clf, x_valid, y_valid, os.path.join(config.SOURCE_FOLDER, f"{model}_{fold}.png"))
+            visualize_functions[model](clf, x_valid, y_valid, os.path.join(config.SOURCE_FOLDER, f"{model}_{fold}.png"))
 
 
 if __name__ == "__main__":
