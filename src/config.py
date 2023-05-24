@@ -6,8 +6,12 @@ SOURCE_FOLDER = "../src/"
 
 VISUALS_FOLDER = "../visualizations/"
 
-TRAINING_FILE = "../input/Train.csv"
+DATASET = "../input/dataset.csv"
 
 TRAINING_FOLDS_FILE = "../input/train_folds.csv"
 
 CLEANED_FILE = "../input/df_cleaned.csv"
+
+TRAINING_FILE = "../input/train_data.csv"
+
+TEST_FILE = "../input/test_data.csv"
