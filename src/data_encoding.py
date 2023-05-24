@@ -60,7 +60,23 @@ def target_encoding(data, columns, target_column):
 
     return data
 
-def data_encoding(encoding_strategy, data, columns, target_column=None):
+def binary_encoding(data, columns, mapping):
+    """
+    This function performs binary encoding on specified categorical columns in the dataframe based on the given mapping.
+
+    Args:
+        data: Dataframe, the input dataframe.
+        columns: list, the list of columns to be encoded.
+        mapping: dict, a dictionary specifying the mapping of values to binary encoding.
+    Returns:
+        data: Dataframe, the dataframe with binary-encoded columns.
+    """
+    for column in columns:
+        data[column] = data[column].map(mapping)
+
+    return data
+
+def data_encoding(encoding_strategy, data, columns, target_column=None, mapping=None):
     """
     This function applies the specified encoding strategy to the given columns of the data.
     Args:
@@ -91,8 +107,10 @@ def data_encoding(encoding_strategy, data, columns, target_column=None):
         if not target_column:
             raise ValueError("Target column must be provided for Target Encoding.")
         return target_encoding(data, columns, target_column)
+    elif encoding_strategy == 'BinaryEncoding':
+        if not mapping:
+            raise ValueError("Mapping must be provided for Binary Encoding.")
+        return binary_encoding(data, columns, mapping)
     else:
         raise ValueError("Unsupported encoding strategy. Available options: 'LabelEncoding', 'OneHotEncoding', 'TargetEncoding'")
-
-
 
