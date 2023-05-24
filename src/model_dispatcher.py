@@ -1,11 +1,16 @@
-from models import LogisticRegressionModel, DecisionTreeModel, RandomForestModel, NaiveBayesModel
+from sklearn.linear_model import LogisticRegression
+from sklearn import ensemble
+from sklearn import tree
+from sklearn.naive_bayes import GaussianNB
+from sklearn.multiclass import OneVsRestClassifier
 
 models = {
-    "logistic_regression": LogisticRegressionModel(),
-    "decision_tree_gini": DecisionTreeModel(criterion="gini"),
-    "decision_tree_entropy": DecisionTreeModel(criterion="entropy"),
-    "rf": RandomForestModel(),
-    "naive_bayes": NaiveBayesModel()
+    "logistic_regression": LogisticRegression(),
+    "decision_tree_gini": tree.DecisionTreeClassifier(criterion="gini"),
+    "decision_tree_entropy": tree.DecisionTreeClassifier(criterion="entropy"),
+    "rf": ensemble.RandomForestClassifier(),
+    "naive_bayes": GaussianNB(),
+    "one_vs_rest": OneVsRestClassifier(LogisticRegression())
 }
 
 def get_model(model_name):
