@@ -7,50 +7,69 @@ from data_encoding import data_encoding
 from data_transformation import convert_to_integer, perform_binning
 from create_folds import create_folds
 from correlation_analysis import perform_correlation_analysis
+from sklearn.model_selection import train_test_split
+import model_dispatcher
+import visualize_models
+from train import run
 
-# Initialize ArgumentParser class of argparse
-# and take input from the command line
-parser = argparse.ArgumentParser()
-parser.add_argument('--n_splits', type=int, default=5)
-args = parser.parse_args()
+if __name__ == "__main__":
+    # Initialize ArgumentParser class of argparse
+    # and take input from the command line
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--n_splits', type=int, default=5)
+    parser.add_argument("--model", type=str)
+    args = parser.parse_args()
 
-# Read the data
-df_original = pd.read_csv(config.TRAINING_FILE)
+    # Read the data
+    df_original = pd.read_csv(config.DATASET)
 
-# Clean the missing values
-df_cleaned = clean_missing_values(df_original)
+    # Clean the missing values
+    df_cleaned = clean_missing_values(df_original)
 
-# Visualize the changes in missing values
-visualize_missing_values(df_original, df_cleaned)
+    # Visualize the changes in missing values
+    visualize_missing_values(df_original, df_cleaned)
 
-# Convert 'Work_Experience', 'Family_Size' to integer data type
-df_cleaned = convert_to_integer(df_cleaned, 'Work_Experience')
-df_cleaned = convert_to_integer(df_cleaned, 'Family_Size')
+    # Convert 'Work_Experience', 'Family_Size' to integer data type
+    df_cleaned = convert_to_integer(df_cleaned, 'Work_Experience')
+    df_cleaned = convert_to_integer(df_cleaned, 'Family_Size')
 
-# Define the bin ranges and labels
-age_bins = [18, 35, 50, 65, float('inf')]
-age_labels = ['18-34', '35-49', '50-64', '65+']
-work_bins = [0, 3, 6, 9, float('inf')]
-work_labels = ['0-2', '3-5', '6-8', '9+']
+    # Define the bin ranges and labels
+    age_bins = [18, 35, 50, 65, float('inf')]
+    age_labels = ['18-34', '35-49', '50-64', '65+']
+    work_bins = [0, 3, 6, 9, float('inf')]
+    work_labels = ['0-2', '3-5', '6-8', '9+']
 
-# Perform binning on the 'Age' column
-df_cleaned = perform_binning(df_cleaned, 'Age', age_bins, age_labels)
-df_cleaned = perform_binning(df_cleaned, 'Work_Experience', work_bins, work_labels)
+    # Perform binning on the 'Age' and 'Work_Experience' column
+    df_cleaned = perform_binning(df_cleaned, 'Age', age_bins, age_labels)
+    df_cleaned = perform_binning(df_cleaned, 'Work_Experience', work_bins, work_labels)
 
-# Define columns for encoding
-encoding_columns = ['Age_Bin', 'Profession', 'Work_Experience_Bin', 'Spending_Score', 'Family_Size']
+    # Define the mapping for binary encoding
+    mapping = {'Male': 1, 'Female': 0, 'Yes': 1, 'No': 0}
 
-# Apply data encoding
-df_encoded = data_encoding("OneHotEncoding", df_cleaned, encoding_columns)
+    # Call the data_encoding function
+    df_encoded = data_encoding("BinaryEncoding", df_cleaned, ['Gender', 'Ever_Married', 'Graduated'], mapping=mapping)
 
-# Dropping 'ID' to avoid redundancy and reduce multicollinearity
-df_encoded.drop('ID', axis=1, inplace=True)
+    # Perform one hot encoding on the specified columns
+    encoding_columns = ['Age_Bin', 'Profession', 'Work_Experience_Bin', 'Spending_Score', 'Family_Size', 'Var_1']
+    df_encoded = data_encoding("OneHotEncoding", df_encoded, encoding_columns)
 
-# Check correlations between variables after encoding
-perform_correlation_analysis(df_encoded)
+    # Dropping 'ID' to avoid redundancy and reduce multicollinearity
+    df_encoded.drop('ID', axis=1, inplace=True)
 
-# Create folds
-df_train_folds = create_folds(df_encoded, args.n_splits)
+    # Check correlations between variables after encoding
+    perform_correlation_analysis(df_encoded)
 
-# Save the training data with folds to a new CSV file
-df_train_folds.to_csv(config.TRAINING_FOLDS_FILE, index=False)
+    # Perform a 70/30 train-to-test split
+    train_data, test_data = train_test_split(df_encoded, test_size=0.3, random_state=42)
+    train_data.to_csv(config.TRAINING_FILE, index=False)
+    test_data.to_csv(config.TEST_FILE, index=False)
+
+    # Create folds
+    cv_data = create_folds(train_data, args.n_splits)
+
+    # Save the training data with folds to a new CSV file
+    cv_data.to_csv(config.TRAINING_FOLDS_FILE, index=False)
+
+    # Run the training and evaluation for each fold and model
+    for fold in range(args.n_splits):
+        run(fold=fold, model=args.model)
