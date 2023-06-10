@@ -55,8 +55,7 @@ def run(fold, model):
     fig, ax = plot_classification_report(y_valid, preds,
                                          title='Multi class classification report',
                                          figsize=(8, 6), dpi=70,
-                                         target_names=["A", "B", "C", "D"],
-                                         save_fig_path=figure_path)
+                                         target_names=["A", "B", "C", "D"])
 
     # save the model
     joblib.dump(
