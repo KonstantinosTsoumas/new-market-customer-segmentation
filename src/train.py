@@ -38,7 +38,7 @@ def run(fold, model):
     y_valid = df_valid["Segmentation"].values
 
     # fetch the model from model_dispatcher
-    clf = model_dispatcher.models[model]
+    clf = model_dispatcher.get_model(model)
 
     # fit the model on training data
     clf.fit(x_train, y_train)
