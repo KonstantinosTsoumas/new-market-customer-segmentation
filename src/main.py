@@ -2,14 +2,15 @@
 import pandas as pd
 import config
 import argparse
+from outlier_operations import detect_remove_plot_outliers
 from data_cleaning import clean_missing_values, visualize_missing_values
 from data_encoding import data_encoding
 from data_transformation import convert_to_integer, perform_binning
 from create_folds import create_folds
 from correlation_analysis import perform_correlation_analysis
 from sklearn.model_selection import train_test_split
-import model_dispatcher
-import visualize_models
+from hyperparameter_search import tune_hyperparameters
+from model_dispatcher import get_model
 from train import run
 
 if __name__ == "__main__":
@@ -18,6 +19,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--n_splits', type=int, default=5)
     parser.add_argument("--model", type=str)
+    #parser.add_argument("--tune_hyperparameters", action="store_true")
     args = parser.parse_args()
 
     # Read the data
@@ -28,6 +30,10 @@ if __name__ == "__main__":
 
     # Visualize the changes in missing values
     visualize_missing_values(df_original, df_cleaned)
+
+    # Define columns to check and remove outliers from
+    columns_to_check = ['Age', 'Family_Size', 'Work_Experience']
+    df_cleaned = detect_remove_plot_outliers(df_cleaned, columns_to_check)
 
     # Convert 'Work_Experience', 'Family_Size' to integer data type
     df_cleaned = convert_to_integer(df_cleaned, 'Work_Experience')
@@ -66,9 +72,13 @@ if __name__ == "__main__":
 
     # Create folds
     cv_data = create_folds(train_data, args.n_splits)
-
+    print(cv_data['kfold'].unique())
     # Save the training data with folds to a new CSV file
     cv_data.to_csv(config.TRAINING_FOLDS_FILE, index=False)
+
+    # Run hyperparameter tuning and update the models with the best hyperparameters
+    best_hyperparameters = tune_hyperparameters(cv_data, args.model, get_model)
+    get_model(args.model).set_params(**best_hyperparameters)
 
     # Run the training and evaluation for each fold and model
     for fold in range(args.n_splits):
