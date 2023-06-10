@@ -1,9 +1,11 @@
 import numpy as np
 import pandas as pd
 import matplotlib as mpl
+import os
 import pathlib
 import matplotlib.pyplot as plt
 import seaborn as sns
+import config
 from sklearn import tree
 from sklearn.metrics import confusion_matrix, roc_curve, auc, precision_recall_curve, average_precision_score
 from sklearn.preprocessing import label_binarize
@@ -239,43 +241,32 @@ def visualize_logistic_regression(model, X, y, fig_path):
     plt.savefig(f'{model_name}_calibration_curve.png')
     plt.close()
 
-def plot_classification_report(y_test, y_pred, title='Classification Report', figsize=(8, 6), dpi=70,
-                                   save_fig_path=None, **kwargs):
+def plot_classification_report(y_test, y_pred, title='Classification Report', figsize=(8, 6), dpi=70, **kwargs):
         """
         This function plots the classification report of sklearn
 
         Parameters
         ----------
-        y_test : pandas.Series of shape (n_samples,)
-            Targets.
-        y_pred : pandas.Series of shape (n_samples,)
-            Predictions.
+        y_test : Series of shape (n_samples,) -> Targets.
+        y_pred : Series of shape (n_samples,) -> Predictions.
         title : str, default = 'Classification Report'
-            Plot title.
-        fig_size : tuple, default = (8, 6)
-            Size (inches) of the plot.
-        dpi : int, default = 70
-            Image DPI.
-        save_fig_path : str, defaut=None
-            Full path where to save the plot. Will generate the folders if they don't exist already.
+        fig_size : tuple, size (inches) of the plot.
+        dpi : int, Image DPI.
         **kwargs : attributes of classification_report class of sklearn
 
         Returns
         -------
-            fig : Matplotlib.pyplot.Figure
-                Figure from matplotlib
-            ax : Matplotlib.pyplot.Axe
-                Axe object from matplotlib
+            fig : Figure from matplotlib
+            ax : Axe object from matplotlib
         """
         fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
-
         clf_report = classification_report(y_test, y_pred, output_dict=True, **kwargs)
         keys_to_plot = [key for key in clf_report.keys() if key not in ('accuracy', 'macro avg', 'weighted avg')]
         df = pd.DataFrame(clf_report, columns=keys_to_plot).T
         # the following line ensures that dataframe are sorted from the majority classes to the minority classes
         df.sort_values(by=['support'], inplace=True)
 
-        # first, let's plot the heatmap by masking the 'support' column
+        # let's plot the heatmap by masking the 'support' column as a first step
         rows, cols = df.shape
         mask = np.zeros(df.shape)
         mask[:, cols - 1] = True
@@ -286,7 +277,7 @@ def plot_classification_report(y_test, y_pred, title='Classification Report', fi
                          linewidths=2, linecolor='white'
                          )
 
-        # then, let's add the support column by normalizing the colors in this column
+        # now let's add the support column by normalizing the colors in this column
         mask = np.zeros(df.shape)
         mask[:, :cols - 1] = True
 
@@ -301,11 +292,9 @@ def plot_classification_report(y_test, y_pred, title='Classification Report', fi
         plt.title(title)
         plt.xticks(rotation=45)
         plt.yticks(rotation=360)
-
-        if (save_fig_path != None):
-            path = pathlib.Path(save_fig_path)
-            path.parent.mkdir(parents=True, exist_ok=True)
-            fig.savefig(save_fig_path)
+        save_fig_path = os.path.join(config.VISUALS_FOLDER, 'classification_report.png')
+        pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(save_fig_path)
 
         return fig, ax
 
