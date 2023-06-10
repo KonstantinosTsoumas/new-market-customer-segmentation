@@ -6,8 +6,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn import tree
 from sklearn.metrics import confusion_matrix, roc_curve, auc, precision_recall_curve, average_precision_score
+from sklearn.preprocessing import label_binarize
 from sklearn.calibration import calibration_curve
 from sklearn.metrics import classification_report
+from sklearn import metrics
 plt.rcParams["figure.max_open_warning"] = 100
 
 def visualize_decision_tree(model, X, y, fig_path):
@@ -23,8 +25,8 @@ def visualize_decision_tree(model, X, y, fig_path):
     """
 
     model_name = type(model).__name__
-    #Plot tree
-    plt.figure(figsize=(30,20))
+    # Plot tree
+    plt.figure(figsize=(30, 20))
     tree.plot_tree(model, fontsize=10)
     plt.savefig(fig_path + '_tree.png')
     plt.close()
@@ -40,9 +42,33 @@ def visualize_decision_tree(model, X, y, fig_path):
     plt.savefig(f'{model_name}_importance.png')
     plt.close()
 
+    # Compute and plot precision-recall curve
+    y_pred = model.predict(X)
+    if hasattr(model, "predict_proba"):
+        y_prob = model.predict_proba(X)
+
+        # Compute one-vs-rest precision-recall curve
+        precision = dict()
+        recall = dict()
+        for i in range(len(model.classes_)):
+            if np.sum(y == i) > 0:  # Check if positive samples exist for the class
+                precision[i], recall[i], _ = metrics.precision_recall_curve(y == i, y_prob[:, i])
+                plt.plot(recall[i], precision[i], lw=2, label='class {}'.format(i))
+
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.ylim([0.0, 1.05])
+        plt.xlim([0.0, 1.0])
+        plt.title('Precision-Recall curve')
+        plt.legend(loc="best")
+        plt.savefig(f'{model_name}_precision_recall.png')
+        plt.close()
+    else:
+        print(f"Warning: {model_name} does not support probability estimates. Precision-Recall curve cannot be computed.")
+
 def visualize_random_forest(model, X, y, fig_path):
     """
-    This functioon isualizes a random forest model.
+    This function visualizes a random forest model.
 
     Args:
         model: RandomForestClassifier, the random forest model to visualize.
@@ -86,39 +112,57 @@ def visualize_random_forest(model, X, y, fig_path):
     plt.savefig(f'{model_name}_confusion_matrix.png')
     plt.close()
 
+    # Convert multiclass labels to binary labels using one-vs-rest strategy
+    y_binary = label_binarize(y, classes=np.unique(y))
+
+    # Compute probabilities for each class
+    prob_predictions = model.predict_proba(X)
+
     # Plot ROC curve
-    fpr, tpr, thresholds = roc_curve(y, predictions)
-    roc_auc = auc(fpr, tpr)
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    for i in range(y_binary.shape[1]):
+        fpr[i], tpr[i], _ = roc_curve(y_binary[:, i], prob_predictions[:, i])
+        roc_auc[i] = auc(fpr[i], tpr[i])
     plt.figure(figsize=(10, 6))
-    plt.plot(fpr, tpr, color="darkorange", lw=2, label="ROC curve (area = %0.2f)" % roc_auc)
+    for i in range(y_binary.shape[1]):
+        plt.plot(fpr[i], tpr[i], lw=2, label=f"ROC curve (class {i})")
     plt.plot([0, 1], [0, 1], color="navy", lw=2, linestyle="--")
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
-    plt.title('Receiver Operating Characteristic - {}'.format(fig_path))
+    plt.title("Receiver Operating Characteristic - {}".format(fig_path))
     plt.legend(loc="lower right")
     plt.savefig(f'{model_name}_roc_curve.png')
     plt.close()
 
     # Plot precision-recall curve
-    precision, recall, _ = precision_recall_curve(y, predictions)
-    average_precision = average_precision_score(y, predictions)
+    precision = dict()
+    recall = dict()
+    average_precision = dict()
+    for i in range(y_binary.shape[1]):
+        precision[i], recall[i], _ = precision_recall_curve(y_binary[:, i], prob_predictions[:, i])
+        average_precision[i] = average_precision_score(y_binary[:, i], prob_predictions[:, i])
     plt.figure(figsize=(10, 6))
-    plt.step(recall, precision, color="b", alpha=0.2, where="post")
-    plt.fill_between(recall, precision, step="post", alpha=0.2, color="b")
+    for i in range(y_binary.shape[1]):
+        plt.plot(recall[i], precision[i], lw=2, label=f"Precision-Recall curve (class {i}): AP={average_precision[i]:0.2f}")
     plt.xlabel("Recall")
     plt.ylabel("Precision")
     plt.ylim([0.0, 1.05])
     plt.xlim([0.0, 1.0])
-    plt.title("2-class Precision-Recall curve: AP={0:0.2f}".format(average_precision).format(fig_path))
+    plt.title("Precision-Recall curve - {}".format(fig_path))
+    plt.legend(loc="lower left")
     plt.savefig(f'{model_name}_precision_recall_curve.png')
     plt.close()
 
     # Plot individual decision trees in the forest
     for i, tree_in_forest in enumerate(model.estimators_):
-        plt.figure(figsize=(30,20))
+        plt.figure(figsize=(30, 20))
         tree.plot_tree(tree_in_forest, fontsize=10)
+        plt.savefig(f'{model_name}_decision_tree_{i}.png')
+        plt.close()
 
 def visualize_logistic_regression(model, X, y, fig_path):
     """
@@ -270,4 +314,5 @@ visualize_functions = {
     "decision_tree_entropy": visualize_decision_tree,
     "rf": visualize_random_forest,
     "logistic_regression": visualize_logistic_regression,
+    "one_vs_rest": visualize_logistic_regression,
 }
