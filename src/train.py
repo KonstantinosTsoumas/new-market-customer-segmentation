@@ -53,7 +53,7 @@ def run(fold, model):
 
     # Create the plot
     fig, ax = plot_classification_report(y_valid, preds,
-                                         title='Multi class classification report',
+                                         title=f'{model}_classification_report',
                                          figsize=(8, 6), dpi=70,
                                          target_names=["A", "B", "C", "D"])
 
