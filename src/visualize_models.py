@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import config
 from sklearn import tree
-from sklearn.metrics import confusion_matrix, roc_curve, auc, precision_recall_curve, average_precision_score
+from sklearn.metrics import precision_score, recall_score, confusion_matrix, roc_curve, auc, precision_recall_curve, average_precision_score
 from sklearn.preprocessing import label_binarize
 from sklearn.calibration import calibration_curve
 from sklearn.metrics import classification_report
@@ -55,7 +55,7 @@ def visualize_decision_tree(model, X, y, fig_path):
         for i in range(len(model.classes_)):
             if np.sum(y == i) > 0:  # Check if positive samples exist for the class
                 precision[i], recall[i], _ = metrics.precision_recall_curve(y == i, y_prob[:, i])
-                plt.plot(recall[i], precision[i], lw=2, label='class {}'.format(i))
+                plt.plot(recall[i], precision[i], lw=2, label='class {}: AP={:.2f}'.format(i, average_precision[i]))
 
         plt.xlabel('Recall')
         plt.ylabel('Precision')
@@ -129,7 +129,7 @@ def visualize_random_forest(model, X, y, fig_path):
         roc_auc[i] = auc(fpr[i], tpr[i])
     plt.figure(figsize=(10, 6))
     for i in range(y_binary.shape[1]):
-        plt.plot(fpr[i], tpr[i], lw=2, label=f"ROC curve (class {i})")
+        plt.plot(fpr[i], tpr[i], lw=2, label=f"ROC curve (class {i}): AUC={roc_auc[i]:0.2f}")
     plt.plot([0, 1], [0, 1], color="navy", lw=2, linestyle="--")
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
@@ -149,7 +149,8 @@ def visualize_random_forest(model, X, y, fig_path):
         average_precision[i] = average_precision_score(y_binary[:, i], prob_predictions[:, i])
     plt.figure(figsize=(10, 6))
     for i in range(y_binary.shape[1]):
-        plt.plot(recall[i], precision[i], lw=2, label=f"Precision-Recall curve (class {i}): AP={average_precision[i]:0.2f}")
+        plt.plot(recall[i], precision[i], lw=2,
+                 label=f"Precision-Recall curve (class {i}): AP={average_precision[i]:0.2f}, AUC={roc_auc[i]:0.2f}")
     plt.xlabel("Recall")
     plt.ylabel("Precision")
     plt.ylim([0.0, 1.05])
@@ -206,7 +207,7 @@ def visualize_logistic_regression(model, X, y, fig_path):
 
     # Plot ROC curve
     fpr, tpr, thresholds = roc_curve(y, model.predict_proba(X)[:,1])
-    plt.plot(fpr, tpr)
+    plt.plot(fpr, tpr, label='ROC curve: AUC={0:0.2f}'.format(auc))
     plt.plot([0, 1], [0, 1], 'k--')
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.0])
@@ -218,7 +219,8 @@ def visualize_logistic_regression(model, X, y, fig_path):
 
     # Plot precision-recall curve
     precision, recall, thresholds = precision_recall_curve(y, model.predict_proba(X)[:,1])
-    plt.plot(recall, precision)
+    plt.plot(recall, precision,
+             label='Precision-Recall curve: AP={0:0.2f}, AUC={1:0.2f}'.format(average_precision, auc))
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.0])
     plt.xlabel('Recall')
@@ -292,16 +294,107 @@ def plot_classification_report(y_test, y_pred, title='Classification Report', fi
         plt.title(title)
         plt.xticks(rotation=45)
         plt.yticks(rotation=360)
-        save_fig_path = os.path.join(config.VISUALS_FOLDER, 'classification_report.png')
+        save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{title}')
         pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(save_fig_path)
 
         return fig, ax
+
+def visualize_one_vs_rest(model, X, y, fig_path):
+    """
+    This function visualizes the ROC curve and Precision-Recall curve for multiclass classification
+    using the One-vs-Rest approach.
+
+    Args:
+        model: OneVsRestClassifier, the One-vs-Rest model to visualize.
+        X: array-like, the input features.
+        y: array-like, the target labels.
+        fig_path: str, the path to save the generated figure.
+    Returns: -
+    """
+    model_name = type(model).__name__
+
+    # Convert the target labels to binary format
+    y_binary = label_binarize(y, classes=model.classes_)
+
+    # Obtain the predicted probabilities for each class
+    y_score = model.predict_proba(X)
+
+    # Calculate the false positive rate (FPR) and true positive rate (TPR) for each class
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    for i in range(len(model.classes_)):
+        fpr[i], tpr[i], _ = roc_curve(y_binary[:, i], y_score[:, i])
+        roc_auc[i] = auc(fpr[i], tpr[i])
+
+    # Calculate the precision and recall for each class
+    precision = dict()
+    recall = dict()
+    average_precision = dict()
+    for i in range(len(model.classes_)):
+        precision[i], recall[i], _ = precision_recall_curve(y_binary[:, i], y_score[:, i])
+        average_precision[i] = average_precision_score(y_binary[:, i], y_score[:, i])
+
+    # Plot the ROC curve for each class
+    plt.figure(figsize=(12, 5))
+    plt.subplot(1, 2, 1)
+    for i in range(len(model.classes_)):
+        plt.plot(fpr[i], tpr[i], label='Class {}: AUC={:.2f}'.format(model.classes_[i], roc_auc[i]))
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.0])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC Curve - {}'.format(fig_path))
+    plt.legend(loc="lower right")
+
+    # Plot the Precision-Recall curve for each class
+    plt.subplot(1, 2, 2)
+    for i in range(len(model.classes_)):
+        plt.plot(recall[i], precision[i], label='Class {}: AP={:.2f}'.format(model.classes_[i], average_precision[i]))
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.0])
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.title('Precision-Recall Curve - {}'.format(fig_path))
+    plt.legend(loc="lower right")
+
+    plt.tight_layout()
+    plt.savefig(f'{model_name}_roc_pr_curves.png')
+    plt.close()
+
+    # Compute precision and recall for each class
+    y_pred = model.predict(X)
+    precision = precision_score(y, y_pred, average=None)
+    recall = recall_score(y, y_pred, average=None)
+
+    # Plot precision for each class
+    plt.figure(figsize=(8, 6))
+    plt.bar(range(len(precision)), precision)
+    plt.xticks(range(len(precision)), ['Class A', 'Class B', 'Class C', 'Class D'])
+    plt.title("Precision for Each Class - {}".format(fig_path))
+    plt.xlabel("Class")
+    plt.ylabel("Precision")
+    plt.savefig(f'{model_name}_precision.png')
+    plt.close()
+
+    # Plot recall for each class
+    plt.figure(figsize=(8, 6))
+    plt.bar(range(len(recall)), recall)
+    plt.xticks(range(len(recall)), ['Class A', 'Class B', 'Class C', 'Class D'])
+    plt.title("Recall for Each Class - {}".format(fig_path))
+    plt.xlabel("Class")
+    plt.ylabel("Recall")
+    plt.savefig(f'{model_name}_recall.png')
+    plt.close()
+
+
 
 visualize_functions = {
     "decision_tree_gini": visualize_decision_tree,
     "decision_tree_entropy": visualize_decision_tree,
     "rf": visualize_random_forest,
     "logistic_regression": visualize_logistic_regression,
-    "one_vs_rest": visualize_logistic_regression,
+    "one_vs_rest": visualize_one_vs_rest,
 }
