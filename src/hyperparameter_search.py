@@ -50,6 +50,19 @@ def tune_hyperparameters(cv_data, model_name, get_model_func, best_params=None):
             "estimator__penalty": ["l1", "l2"],
             "estimator__solver": ["liblinear"]
         }
+    elif model_name == "one_vs_one":
+        param_grid = {
+            "estimator__C": [0.1, 1, 10],
+            "estimator__loss": ["hinge", "squared_hinge"],
+            "estimator__tol": [1e-4, 1e-3, 1e-2],
+            "estimator__max_iter": [1000, 2000, 3000, 5000],
+        }
+    elif model_name == "knn":
+        param_grid = {
+            "n_neighbors": [2, 4, 6, 8, 10],
+            "weights": ["uniform", "distance"],
+            "algorithm": ["auto", "ball_tree", "kd_tree", "brute"]
+        }
     else:
         raise NotImplementedError(f'{model_name} is not implemented')
 
@@ -77,7 +90,7 @@ def tune_hyperparameters(cv_data, model_name, get_model_func, best_params=None):
     best_params = random_search.best_params_
 
     # Save them to a JSON file
-    with open(config.MODELS_FOLDER + '/best_hyperparameters.json', 'w') as file:
+    with open(config.MODELS_FOLDER + f'/{model_name}_best_hyperparameters.json', 'w') as file:
         json.dump(best_params, file)
 
     # Return the best hyperparameters
