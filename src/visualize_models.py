@@ -7,11 +7,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import config
 from sklearn import tree
-from sklearn.metrics import precision_score, recall_score, confusion_matrix, roc_curve, auc, precision_recall_curve, average_precision_score
+from sklearn.metrics import precision_score, recall_score, confusion_matrix, roc_curve, auc, precision_recall_curve, average_precision_score, classification_report
 from sklearn.preprocessing import label_binarize
 from sklearn.calibration import calibration_curve
-from sklearn.metrics import classification_report
 from sklearn import metrics
+from sklearn.preprocessing import LabelEncoder
 plt.rcParams["figure.max_open_warning"] = 100
 
 def visualize_decision_tree(model, X, y, fig_path):
@@ -35,12 +35,19 @@ def visualize_decision_tree(model, X, y, fig_path):
 
     # Plot feature importance
     importances = model.feature_importances_
+    if isinstance(X, pd.DataFrame):
+        feature_names = X.columns
+    else:
+        feature_names = np.arange(X.shape[1])
     indices = np.argsort(importances)[::-1]
-    plt.figure()
-    plt.title("Feature importances - {}".format(fig_path))
-    plt.bar(range(len(indices)), importances[indices], color="r", align="center")
-    plt.xticks(range(len(indices)), indices)
-    plt.xlim([-1, len(indices)])
+    plt.figure(figsize=(10, 6))
+    plt.title("Feature Importances - {}".format(fig_path))
+    plt.barh(range(len(indices)), importances[indices], color="r", align="center")
+    plt.yticks(range(len(indices)), feature_names[indices], fontsize=8)  # Adjust fontsize for better visibility
+    plt.gca().invert_yaxis()  # Invert y-axis to show features from top to bottom
+    plt.xlabel("Feature Importance Score")
+    plt.ylabel("Features")
+    plt.tight_layout()  # Add tight layout for better spacing
     plt.savefig(f'{model_name}_importance.png')
     plt.close()
 
@@ -56,6 +63,7 @@ def visualize_decision_tree(model, X, y, fig_path):
             if np.sum(y == i) > 0:  # Check if positive samples exist for the class
                 precision[i], recall[i], _ = metrics.precision_recall_curve(y == i, y_prob[:, i])
                 plt.plot(recall[i], precision[i], lw=2, label='class {}: AP={:.2f}'.format(i, average_precision[i]))
+
 
         plt.xlabel('Recall')
         plt.ylabel('Precision')
@@ -294,7 +302,7 @@ def plot_classification_report(y_test, y_pred, title='Classification Report', fi
         plt.title(title)
         plt.xticks(rotation=45)
         plt.yticks(rotation=360)
-        save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{title}')
+        save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{title}.png')
         pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(save_fig_path)
 
@@ -389,7 +397,72 @@ def visualize_one_vs_rest(model, X, y, fig_path):
     plt.savefig(f'{model_name}_recall.png')
     plt.close()
 
+def visualize_knn(model, X, y, fig_path):
+    """
+    This function visualizes a K-Nearest Neighbors (KNN) model.
 
+    Args:
+        model: KNeighborsClassifier, the KNN model to visualize.
+        X: array-like, the input features.
+        y: array-like, the target labels.
+        fig_path: str, the path to save the generated figures.
+    Returns: -
+    """
+
+    model_name = type(model).__name__
+
+    # Plot decision boundaries
+    h = 0.02  # step size in the mesh
+    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
+
+    # Put the result into a color plot
+    Z = Z.reshape(xx.shape)
+    plt.figure(figsize=(10, 6))
+    plt.contourf(xx, yy, Z, alpha=0.8)
+    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Paired)
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    plt.title('Decision Boundaries - {}'.format(fig_path))
+    plt.savefig(f'{model_name}_decision_boundaries.png')
+    plt.close()
+
+    # Compute and plot precision-recall curve
+    y_pred = model.predict(X)
+    if hasattr(model, "predict_proba"):
+        y_prob = model.predict_proba(X)
+
+        # Compute one-vs-rest precision-recall curve
+        precision = dict()
+        recall = dict()
+        for i in range(len(model.classes_)):
+            if np.sum(y == i) > 0:  # Check if positive samples exist for the class
+                precision[i], recall[i], _ = metrics.precision_recall_curve(y == i, y_prob[:, i])
+                plt.plot(recall[i], precision[i], lw=2, label='class {}: AP={:.2f}'.format(i, average_precision[i]))
+
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.ylim([0.0, 1.05])
+        plt.xlim([0.0, 1.0])
+        plt.title('Precision-Recall curve')
+        plt.legend(loc="best")
+        plt.savefig(f'{model_name}_precision_recall.png')
+        plt.close()
+    else:
+        print(f"Warning: {model_name} does not support probability estimates. Precision-Recall curve cannot be computed.")
+
+    # Plot confusion matrix
+    predictions = model.predict(X)
+    cm = confusion_matrix(y, predictions)
+    plt.figure(figsize=(10, 6))
+    sns.heatmap(cm, annot=True, cmap="Blues", fmt="d")
+    plt.title('Confusion Matrix - {}'.format(fig_path))
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.savefig(f'{model_name}_confusion_matrix.png')
+    plt.close()
 
 visualize_functions = {
     "decision_tree_gini": visualize_decision_tree,
@@ -397,4 +470,5 @@ visualize_functions = {
     "rf": visualize_random_forest,
     "logistic_regression": visualize_logistic_regression,
     "one_vs_rest": visualize_one_vs_rest,
+    "knn" : visualize_knn,
 }
