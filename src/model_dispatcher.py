@@ -2,7 +2,10 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn.multiclass import OneVsRestClassifier
+from sklearn.multiclass import OneVsRestClassifier, OneVsOneClassifier
+from sklearn.svm import LinearSVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
 
 def get_logistic_regression():
     return LogisticRegression()
@@ -22,6 +25,13 @@ def get_naive_bayes():
 def get_one_vs_rest():
     return OneVsRestClassifier(LogisticRegression())
 
+def get_one_vs_one():
+    return OneVsOneClassifier(LinearSVC())
+
+def get_knn():
+    return KNeighborsClassifier()
+
+
 # Modify the model_dispatcher dictionary
 models = {
     "logistic_regression": get_logistic_regression,
@@ -29,7 +39,9 @@ models = {
     "decision_tree_entropy": get_decision_tree_entropy,
     "rf": get_rf,
     "naive_bayes": get_naive_bayes,
-    "one_vs_rest": get_one_vs_rest
+    "one_vs_rest": get_one_vs_rest,
+    "one_vs_one" : get_one_vs_one,
+    "knn" : get_knn,
 }
 
 def get_model(model_name):
