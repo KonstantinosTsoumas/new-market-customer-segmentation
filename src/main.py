@@ -2,6 +2,8 @@
 import pandas as pd
 import config
 import argparse
+import os
+import joblib
 from outlier_operations import detect_remove_plot_outliers
 from data_cleaning import clean_missing_values, visualize_missing_values
 from data_encoding import data_encoding
@@ -12,6 +14,8 @@ from sklearn.model_selection import train_test_split
 from hyperparameter_search import tune_hyperparameters
 from model_dispatcher import get_model
 from train import run
+from inference import predict
+
 
 if __name__ == "__main__":
     # Initialize ArgumentParser class of argparse
@@ -73,13 +77,21 @@ if __name__ == "__main__":
     # Create folds
     cv_data = create_folds(train_data, args.n_splits)
     print(cv_data['kfold'].unique())
+
     # Save the training data with folds to a new CSV file
     cv_data.to_csv(config.TRAINING_FOLDS_FILE, index=False)
 
-    # Run hyperparameter tuning and update the models with the best hyperparameters
+    # Run hyperparameter tuning and get the best model
     best_hyperparameters = tune_hyperparameters(cv_data, args.model, get_model)
-    get_model(args.model).set_params(**best_hyperparameters)
+    best_model = get_model(args.model).set_params(**best_hyperparameters)
+
+    # Save the best model
+    model_path = os.path.join(config.MODELS_FOLDER, f"{args.model}_best_model.bin")
+    joblib.dump(best_model, model_path)
 
     # Run the training and evaluation for each fold and model
     for fold in range(args.n_splits):
         run(fold=fold, model=args.model)
+
+    # Make predictions on the test set using the best model
+    predictions = predict(model_path, config.TEST_FILE)
