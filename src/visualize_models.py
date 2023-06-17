@@ -411,15 +411,26 @@ def visualize_knn(model, X, y, fig_path):
 
     model_name = type(model).__name__
 
-    # Plot decision boundaries
-    h = 0.02  # step size in the mesh
+    # Calculate the minimum and maximum values for each feature
     x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
     y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
-    Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
 
-    # Put the result into a color plot
+    # Generate a mesh grid of points using the minimum and maximum values
+    h = 0.1  # Step size in the mesh
+    x_values = np.arange(x_min, x_max, h)
+    y_values = np.arange(y_min, y_max, h)
+    xx, yy = np.meshgrid(x_values, y_values)
+
+    # Flatten the mesh grid points and repeat them for 40 features
+    mesh_grid = np.column_stack((xx.ravel(), yy.ravel()))
+    mesh_grid = np.repeat(mesh_grid, 40, axis=1)
+
+    # Use the model to predict the output for the mesh grid points
+    Z = model.predict(mesh_grid)
+
+    # Reshape the predictions to match the mesh grid dimensions
     Z = Z.reshape(xx.shape)
+
     plt.figure(figsize=(10, 6))
     plt.contourf(xx, yy, Z, alpha=0.8)
     plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Paired)
