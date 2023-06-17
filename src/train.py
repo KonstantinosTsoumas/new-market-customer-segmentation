@@ -48,8 +48,6 @@ def run(fold, model):
 
     # print classification results
     print(f"\033[1m\033[4mClassification report:\033[0m\n{classification_report(y_valid, preds)}")
-    # Specify the file path to save the figure
-    figure_path = os.path.join(config.VISUALS_FOLDER, f"{model}.png")
 
     # Create the plot
     fig, ax = plot_classification_report(y_valid, preds,
