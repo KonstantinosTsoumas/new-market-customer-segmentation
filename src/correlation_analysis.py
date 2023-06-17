@@ -21,8 +21,8 @@ def perform_correlation_analysis(df):
         correlation_matrix = df_filtered.corr()
 
         # Visualize the correlation matrix using a heatmap
-        plt.figure(figsize=(18, 14))
-        sns.set(font_scale=1)
+        plt.figure(figsize=(30, 26))
+        sns.set(font_scale=1.2)
         sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', linewidths=1, fmt=".2f")
         plt.title('Correlation Matrix')
 
