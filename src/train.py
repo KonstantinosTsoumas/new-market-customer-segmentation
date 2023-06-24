@@ -63,7 +63,7 @@ def run(fold, model):
 
     # visualize the model if specified in the visualize_functions dictionary
     if model in visualize_functions and visualize_functions[model] is not None:
-            visualize_functions[model](clf, x_valid, y_valid, os.path.join(config.VISUALS_FOLDER, f"{model}_{fold}.png"))
+            visualize_functions[model](clf, x_valid, y_valid)
 
 
 if __name__ == "__main__":
