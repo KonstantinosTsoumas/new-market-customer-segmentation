@@ -14,7 +14,7 @@ from sklearn import metrics
 from sklearn.preprocessing import LabelEncoder
 plt.rcParams["figure.max_open_warning"] = 100
 
-def visualize_decision_tree(model, X, y, fig_path):
+def visualize_decision_tree(model, X, y):
     """
     This function visualizes a decision tree model.
 
@@ -30,7 +30,9 @@ def visualize_decision_tree(model, X, y, fig_path):
     # Plot tree
     plt.figure(figsize=(30, 20))
     tree.plot_tree(model, fontsize=10)
-    plt.savefig(fig_path + '_tree.png')
+    save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{model_name}_tree.png')
+    pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(save_fig_path)
     plt.close()
 
     # Plot feature importance
@@ -41,42 +43,22 @@ def visualize_decision_tree(model, X, y, fig_path):
         feature_names = np.arange(X.shape[1])
     indices = np.argsort(importances)[::-1]
     plt.figure(figsize=(10, 6))
-    plt.title("Feature Importances - {}".format(fig_path))
+    plt.title("Feature Importances - {}".format(model_name))
     plt.barh(range(len(indices)), importances[indices], color="r", align="center")
     plt.yticks(range(len(indices)), feature_names[indices], fontsize=8)  # Adjust fontsize for better visibility
     plt.gca().invert_yaxis()  # Invert y-axis to show features from top to bottom
     plt.xlabel("Feature Importance Score")
     plt.ylabel("Features")
     plt.tight_layout()  # Add tight layout for better spacing
-    plt.savefig(f'{model_name}_importance.png')
+    save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{model_name}_importance.png')
+    pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(save_fig_path)
     plt.close()
 
-    # Compute and plot precision-recall curve
-    y_pred = model.predict(X)
-    if hasattr(model, "predict_proba"):
-        y_prob = model.predict_proba(X)
-
-        # Compute one-vs-rest precision-recall curve
-        precision = dict()
-        recall = dict()
-        for i in range(len(model.classes_)):
-            if np.sum(y == i) > 0:  # Check if positive samples exist for the class
-                precision[i], recall[i], _ = metrics.precision_recall_curve(y == i, y_prob[:, i])
-                plt.plot(recall[i], precision[i], lw=2, label='class {}: AP={:.2f}'.format(i, average_precision[i]))
-
-
-        plt.xlabel('Recall')
-        plt.ylabel('Precision')
-        plt.ylim([0.0, 1.05])
-        plt.xlim([0.0, 1.0])
-        plt.title('Precision-Recall curve')
-        plt.legend(loc="best")
-        plt.savefig(f'{model_name}_precision_recall.png')
-        plt.close()
     else:
         print(f"Warning: {model_name} does not support probability estimates. Precision-Recall curve cannot be computed.")
 
-def visualize_random_forest(model, X, y, fig_path):
+def visualize_random_forest(model, X, y):
     """
     This function visualizes a random forest model.
 
@@ -102,13 +84,15 @@ def visualize_random_forest(model, X, y, fig_path):
     std = np.std([tree.feature_importances_ for tree in model.estimators_], axis=0)
     indices = np.argsort(importances)[::-1]
     plt.figure(figsize=(10, 6))
-    plt.title("Feature importances - {}".format(fig_path))
+    plt.title("Feature importances - {}".format(model_name))
     plt.bar(range(X.shape[1]), importances[indices], color="r", yerr=std[indices], align="center")
     plt.xticks(range(X.shape[1]), indices)
     plt.xlim([-1, X.shape[1]])
     plt.xlabel("Feature")
     plt.ylabel("Importance")
-    plt.savefig(f'{model_name}_feature_importances.png')
+    save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{model_name}_feature_importances.png')
+    pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(save_fig_path)
     plt.close()
 
     # Plot confusion matrix
@@ -118,9 +102,12 @@ def visualize_random_forest(model, X, y, fig_path):
     sns.heatmap(cm, annot=True, cmap="Blues")
     plt.xlabel("Predicted labels")
     plt.ylabel("True labels")
-    plt.title("Confusion Matrix - {}".format(fig_path))
-    plt.savefig(f'{model_name}_confusion_matrix.png')
+    plt.title("Confusion Matrix - {}".format(model_name))
+    save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{model_name}_confusion_matrix.png')
+    pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(save_fig_path)
     plt.close()
+
 
     # Convert multiclass labels to binary labels using one-vs-rest strategy
     y_binary = label_binarize(y, classes=np.unique(y))
@@ -143,10 +130,13 @@ def visualize_random_forest(model, X, y, fig_path):
     plt.ylim([0.0, 1.05])
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
-    plt.title("Receiver Operating Characteristic - {}".format(fig_path))
+    plt.title("Receiver Operating Characteristic - {}".format(config.VISUALS_FOLDER))
     plt.legend(loc="lower right")
-    plt.savefig(f'{model_name}_roc_curve.png')
+    save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{model_name}_roc_curve.png')
+    pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(save_fig_path)
     plt.close()
+
 
     # Plot precision-recall curve
     precision = dict()
@@ -163,24 +153,29 @@ def visualize_random_forest(model, X, y, fig_path):
     plt.ylabel("Precision")
     plt.ylim([0.0, 1.05])
     plt.xlim([0.0, 1.0])
-    plt.title("Precision-Recall curve - {}".format(fig_path))
+    plt.title("Precision-Recall curve - {}".format(config.VISUALS_FOLDER))
     plt.legend(loc="lower left")
-    plt.savefig(f'{model_name}_precision_recall_curve.png')
+    save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{model_name}_precision_recall_curve.png')
+    pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(save_fig_path)
     plt.close()
 
     # Plot individual decision trees in the forest
     for i, tree_in_forest in enumerate(model.estimators_):
         plt.figure(figsize=(30, 20))
         tree.plot_tree(tree_in_forest, fontsize=10)
-        plt.savefig(f'{model_name}_decision_tree_{i}.png')
+        save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{model_name}_decision_tree_{i}.png')
+        pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(save_fig_path)
         plt.close()
+
 
 def visualize_logistic_regression(model, X, y, fig_path):
     """
     This function visualizes a logistic regression model.
 
     Args:
-        model: RandomForestClassifier, the random forest model to visualize.
+        model: LogisticRegression, the logistic regression model to visualize.
         X: array-like, the input features.
         y: array-like, the target labels.
         fig_path: str, the path to save the generated figures.
@@ -193,48 +188,56 @@ def visualize_logistic_regression(model, X, y, fig_path):
     plt.figure(figsize=(15, 5))
     plt.stem(coef)
     plt.xticks(range(len(coef)), range(len(coef)))
-    plt.title("Coefficients of Logistic Regression Model - {}".format(fig_path))
+    plt.title("Coefficients of Logistic Regression Model - {}".format(model_name))
     plt.xlabel("Feature")
     plt.ylabel("Coefficient")
-    plt.savefig(f'{model_name}_coefficients.png')
+    save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{model_name}_coefficinets.png')
+    pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(save_fig_path)
     plt.close()
 
     # Plot confusion matrix
     y_pred = model.predict(X)
     cm = confusion_matrix(y, y_pred)
     plt.imshow(cm, cmap=plt.cm.Blues, interpolation='nearest')
-    plt.title("Confusion Matrix - {}".format(fig_path))
+    plt.title("Confusion Matrix - {}".format(model_name))
     plt.colorbar()
     tick_marks = np.arange(2)
     plt.xticks(tick_marks, ['negative', 'positive'], rotation=45)
     plt.yticks(tick_marks, ['negative', 'positive'])
     plt.xlabel("Predicted Label")
     plt.ylabel("True Label")
-    plt.savefig(f'{model_name}_confusion_matrix.png')
+    save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{model_name}_confusion_matrix.png')
+    pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(save_fig_path)
     plt.close()
 
     # Plot ROC curve
-    fpr, tpr, thresholds = roc_curve(y, model.predict_proba(X)[:,1])
-    plt.plot(fpr, tpr, label='ROC curve: AUC={0:0.2f}'.format(auc))
+    fpr, tpr, thresholds = roc_curve(y, model.predict_proba(X)[:, 1])
+    roc_auc = auc(fpr, tpr)
+    plt.plot(fpr, tpr, label='ROC curve: AUC={0:0.2f}'.format(roc_auc))
     plt.plot([0, 1], [0, 1], 'k--')
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.0])
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('ROC Curve - {}'.format(fig_path))
-    plt.savefig(f'{model_name}_roc_curve.png')
+    plt.title('ROC Curve - {}'.format(model_name))
+    plt.savefig(fig_path)
     plt.close()
 
     # Plot precision-recall curve
-    precision, recall, thresholds = precision_recall_curve(y, model.predict_proba(X)[:,1])
+    precision, recall, thresholds = precision_recall_curve(y, model.predict_proba(X)[:, 1])
+    average_precision = average_precision_score(y, model.predict_proba(X)[:, 1])
     plt.plot(recall, precision,
-             label='Precision-Recall curve: AP={0:0.2f}, AUC={1:0.2f}'.format(average_precision, auc))
+             label='Precision-Recall curve: AP={0:0.2f}'.format(average_precision))
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.0])
     plt.xlabel('Recall')
     plt.ylabel('Precision')
-    plt.title('Precision-Recall Curve - {}'.format(fig_path))
-    plt.savefig(f'{model_name}_precision_recall_curve.png')
+    plt.title('Precision-Recall Curve - {}'.format(model_name))
+    save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{model_name}_precision_recall.png')
+    pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(save_fig_path)
     plt.close()
 
     # Plot calibration curve
@@ -247,9 +250,12 @@ def visualize_logistic_regression(model, X, y, fig_path):
     plt.xlabel("Mean predicted value")
     plt.ylim([-0.05, 1.05])
     plt.legend(loc="lower right")
-    plt.title("Calibration Curve - {}".format(fig_path))
-    plt.savefig(f'{model_name}_calibration_curve.png')
+    plt.title("Calibration Curve - {}".format(model_name))
+    save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{model_name}_calibration_curve.png')
+    pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(save_fig_path)
     plt.close()
+
 
 def plot_classification_report(y_test, y_pred, title='Classification Report', figsize=(8, 6), dpi=70, **kwargs):
         """
@@ -308,7 +314,7 @@ def plot_classification_report(y_test, y_pred, title='Classification Report', fi
 
         return fig, ax
 
-def visualize_one_vs_rest(model, X, y, fig_path):
+def visualize_one_vs_rest(model, X, y):
     """
     This function visualizes the ROC curve and Precision-Recall curve for multiclass classification
     using the One-vs-Rest approach.
@@ -354,7 +360,7 @@ def visualize_one_vs_rest(model, X, y, fig_path):
     plt.ylim([0.0, 1.0])
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('ROC Curve - {}'.format(fig_path))
+    plt.title('ROC Curve - {}'.format(model_name))
     plt.legend(loc="lower right")
 
     # Plot the Precision-Recall curve for each class
@@ -365,11 +371,12 @@ def visualize_one_vs_rest(model, X, y, fig_path):
     plt.ylim([0.0, 1.0])
     plt.xlabel('Recall')
     plt.ylabel('Precision')
-    plt.title('Precision-Recall Curve - {}'.format(fig_path))
+    plt.title('Precision-Recall Curve - {}'.format(model_name))
     plt.legend(loc="lower right")
-
     plt.tight_layout()
-    plt.savefig(f'{model_name}_roc_pr_curves.png')
+    save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{model_name}_roc_pr_curves.png')
+    pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(save_fig_path)
     plt.close()
 
     # Compute precision and recall for each class
@@ -381,23 +388,27 @@ def visualize_one_vs_rest(model, X, y, fig_path):
     plt.figure(figsize=(8, 6))
     plt.bar(range(len(precision)), precision)
     plt.xticks(range(len(precision)), ['Class A', 'Class B', 'Class C', 'Class D'])
-    plt.title("Precision for Each Class - {}".format(fig_path))
+    plt.title("Precision for Each Class - {}".format(model_name))
     plt.xlabel("Class")
     plt.ylabel("Precision")
-    plt.savefig(f'{model_name}_precision.png')
+    save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{model_name}_precision.png')
+    pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(save_fig_path)
     plt.close()
 
     # Plot recall for each class
     plt.figure(figsize=(8, 6))
     plt.bar(range(len(recall)), recall)
     plt.xticks(range(len(recall)), ['Class A', 'Class B', 'Class C', 'Class D'])
-    plt.title("Recall for Each Class - {}".format(fig_path))
+    plt.title("Recall for Each Class - {}".format(model_name))
     plt.xlabel("Class")
     plt.ylabel("Recall")
-    plt.savefig(f'{model_name}_recall.png')
+    save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{model_name}_recal.png')
+    pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(save_fig_path)
     plt.close()
 
-def visualize_knn(model, X, y, fig_path):
+def visualize_knn(model, X, y):
     """
     This function visualizes a K-Nearest Neighbors (KNN) model.
 
@@ -436,8 +447,10 @@ def visualize_knn(model, X, y, fig_path):
     plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Paired)
     plt.xlabel('Feature 1')
     plt.ylabel('Feature 2')
-    plt.title('Decision Boundaries - {}'.format(fig_path))
-    plt.savefig(f'{model_name}_decision_boundaries.png')
+    plt.title('Decision Boundaries - {}'.format(model_name))
+    save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{model_name}_decision_boundaries.png')
+    pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(save_fig_path)
     plt.close()
 
     # Compute and plot precision-recall curve
@@ -459,7 +472,9 @@ def visualize_knn(model, X, y, fig_path):
         plt.xlim([0.0, 1.0])
         plt.title('Precision-Recall curve')
         plt.legend(loc="best")
-        plt.savefig(f'{model_name}_precision_recall.png')
+        save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{model_name}_precision_recall.png')
+        pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(save_fig_path)
         plt.close()
     else:
         print(f"Warning: {model_name} does not support probability estimates. Precision-Recall curve cannot be computed.")
@@ -469,10 +484,12 @@ def visualize_knn(model, X, y, fig_path):
     cm = confusion_matrix(y, predictions)
     plt.figure(figsize=(10, 6))
     sns.heatmap(cm, annot=True, cmap="Blues", fmt="d")
-    plt.title('Confusion Matrix - {}'.format(fig_path))
+    plt.title('Confusion Matrix - {}'.format(model_name))
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
-    plt.savefig(f'{model_name}_confusion_matrix.png')
+    save_fig_path = os.path.join(config.VISUALS_FOLDER, f'{model_name}_confusion_matrix.png')
+    pathlib.Path(save_fig_path).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(save_fig_path)
     plt.close()
 
 visualize_functions = {
