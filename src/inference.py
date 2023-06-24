@@ -44,7 +44,7 @@ def predict(model_file, test_data):
 
     # visualize the model if specified in the visualize_functions dictionary
     if model in visualize_functions and visualize_functions[model] is not None:
-            visualize_functions[model](fit, x_test, y_test, os.path.join(config.VISUALS_FOLDER, f"{model}.png"))
+            visualize_functions[model](fit, x_test, y_test)
 
 
     return results_df
