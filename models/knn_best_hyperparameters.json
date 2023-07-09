@@ -1,1 +1,1 @@
-{"weights": "distance", "n_neighbors": 10, "algorithm": "brute"}
+{"weights": "distance", "n_neighbors": 10, "algorithm": "ball_tree"}
