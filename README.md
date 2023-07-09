@@ -77,7 +77,7 @@ Please refer to the exploration notebook for an extensive variable analysis.
 | Random Forest                       |   4   | 0.482       | 0.483       | 0.483       |
 
 
-* Summarized test data classification report using different hyperparameters: 
+* Summarized test data classification report using different hyperparameters on each model: 
 
 | Model                             | Class | Precision   | Recall      | F1-Score    | Support     |
 |-----------------------------------|-------|-------------|-------------|-------------|-------------|
