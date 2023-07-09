@@ -143,6 +143,93 @@ Analyze the predicted customer segments for the new potential customers and use 
 You may navigate into the /models section to check for the train models as well as its hyperameters and investigate the best ones.
 In addition to this, the /visualizations section provides the corresponding visuals for the trained model. 
 
+* Summarized CV evaluation metrics on the training set (per model): 
+
+| Model                               | Fold  | Precision   | Recall      | Accuracy    |
+|-------------------------------------|-------|-------------|-------------|-------------|
+| Decision Tree (Entropy)             |   0   | 0.428       | 0.413       | 0.413       |
+| Decision Tree (Entropy)             |   1   | 0.441       | 0.438       | 0.438       |
+| Decision Tree (Entropy)             |   2   | 0.422       | 0.420       | 0.420       |
+| Decision Tree (Entropy)             |   3   | 0.476       | 0.466       | 0.466       |
+| Decision Tree (Entropy)             |   4   | 0.442       | 0.437       | 0.437       |
+| -------------------------------     |-------|-------------|-------------|-------------|
+| Decision Tree (Gini)                |   0   | 0.442       | 0.444       | 0.444       |
+| Decision Tree (Gini)                |   1   | 0.446       | 0.442       | 0.442       |
+| Decision Tree (Gini)                |   2   | 0.429       | 0.425       | 0.425       |
+| Decision Tree (Gini)                |   3   | 0.429       | 0.426       | 0.426       |
+| Decision Tree (Gini)                |   4   | 0.420       | 0.416       | 0.416       |
+| -------------------------------     |-------|-------------|-------------|-------------|
+| k-Nearest Neighbors (KNN)           |   0   | 0.470       | 0.468       | 0.468       |
+| k-Nearest Neighbors (KNN)           |   1   | 0.476       | 0.463       | 0.463       |
+| k-Nearest Neighbors (KNN)           |   2   | 0.462       | 0.456       | 0.456       |
+| k-Nearest Neighbors (KNN)           |   3   | 0.457       | 0.453       | 0.453       |
+| k-Nearest Neighbors (KNN)           |   4   | 0.475       | 0.472       | 0.472       |
+| -------------------------------     |-------|-------------|-------------|-------------|
+| Naive Bayes                         |   0   | 0.488       | 0.492       | 0.492       |
+| Naive Bayes                         |   1   | 0.480       | 0.486       | 0.486       |
+| Naive Bayes                         |   2   | 0.484       | 0.488       | 0.488       |
+| Naive Bayes                         |   3   | 0.473       | 0.483       | 0.483       |
+| Naive Bayes                         |   4   | 0.480       | 0.497       | 0.497       |
+| -------------------------------     |-------|-------------|-------------|-------------|
+| One-vs-One (Linear SVC)             |   0   | 0.497       | 0.503       | 0.503       |
+| One-vs-One (Linear SVC)             |   1   | 0.516       | 0.523       | 0.523       |
+| One-vs-One (Linear SVC)             |   2   | 0.496       | 0.507       | 0.507       |
+| One-vs-One (Linear SVC)             |   3   | 0.507       | 0.511       | 0.511       |
+| One-vs-One (Linear SVC)             |   4   | 0.469       | 0.478       | 0.478       |
+| -------------------------------     |-------|-------------|-------------|-------------|
+| One-vs-Rest (Logistic Regression)   | 0   | 0.479       | 0.494       | 0.494       |
+| One-vs-Rest (Logistic Regression)   | 1   | 0.517       | 0.525       | 0.525       |
+| One-vs-Rest (Logistic Regression)   | 2   | 0.492       | 0.499       | 0.499       |
+| One-vs-Rest (Logistic Regression)   | 3   | 0.476       | 0.485       | 0.485       |
+| One-vs-Rest (Logistic Regression)   | 4   | 0.485       | 0.498       | 0.498       |
+| -------------------------------     |-------|-------------|-------------|-------------|
+| Random Forest                       |   0   | 0.458       | 0.465       | 0.465       |
+| Random Forest                       |   1   | 0.476       | 0.478       | 0.478       |
+| Random Forest                       |   2   | 0.471       | 0.470       | 0.470       |
+| Random Forest                       |   3   | 0.487       | 0.491       | 0.491       |
+| Random Forest                       |   4   | 0.482       | 0.483       | 0.483       |
+
+
+* Summarized CV evaluation metrics on the testing set (per model): 
+
+| Model                             | Class | Precision   | Recall      | F1-Score    | Support     |
+|-----------------------------------|-------|-------------|-------------|-------------|-------------|
+| Decision Tree (Gini)              |   A   | 0.457       | 0.391       | 0.422       | 450.0       |
+| Decision Tree (Gini)              |   B   | 0.431       | 0.343       | 0.382       | 463.0       |
+| Decision Tree (Gini)              |   C   | 0.547       | 0.692       | 0.611       | 509.0       |
+| Decision Tree (Gini)              |   D   | 0.686       | 0.716       | 0.701       | 557.0       |
+| -------------------------------   |-------|-------------|-------------|-------------|-------------|
+| Decision Tree (Entropy)           |   A   | 0.450       | 0.447       | 0.448       | 450.0       |
+| Decision Tree (Entropy)           |   B   | 0.430       | 0.244       | 0.311       | 463.0       |
+| Decision Tree (Entropy)           |   C   | 0.527       | 0.680       | 0.593       | 509.0       |
+| Decision Tree (Entropy)           |   D   | 0.667       | 0.732       | 0.698       | 557.0       |
+| -------------------------------   |-------|-------------|-------------|-------------|-------------|
+| Naive Bayes                       |   A   | 0.423       | 0.467       | 0.444       | 450.0       |
+| Naive Bayes                       |   B   | 0.430       | 0.179       | 0.253       | 463.0       |
+| Naive Bayes                       |   C   | 0.483       | 0.707       | 0.574       | 509.0       |
+| Naive Bayes                       |   D   | 0.659       | 0.645       | 0.652       | 557.0       |
+| -------------------------------   |-------|-------------|-------------|-------------|-------------|
+| k-Nearest Neighbors (KNN)         |   A   | 0.791       | 0.900       | 0.842       | 450.0       |
+| k-Nearest Neighbors (KNN)         |   B   | 0.819       | 0.812       | 0.816       | 463.0       |
+| k-Nearest Neighbors (KNN)         |   C   | 0.848       | 0.835       | 0.842       | 509.0       |
+| k-Nearest Neighbors (KNN)         |   D   | 0.963       | 0.876       | 0.917       | 557.0       |
+| -------------------------------   |-------|-------------|-------------|-------------|-------------|
+| One-vs-One (Linear SVC)           |   A   | 0.438       | 0.476       | 0.456       | 450.0       |
+| One-vs-One (Linear SVC)           |   B   | 0.454       | 0.289       | 0.354       | 463.0       |
+| One-vs-One (Linear SVC)           |   C   | 0.555       | 0.664       | 0.605       | 509.0       |
+| One-vs-One (Linear SVC)           |   D   | 0.672       | 0.707       | 0.689       | 557.0       |
+| -------------------------------   |-------|-------------|-------------|-------------|-------------|
+| One-vs-Rest (Logistic Regression) | A | 0.450       | 0.416       | 0.432       | 450.0       |
+| One-vs-Rest (Logistic Regression) | B | 0.451       | 0.259       | 0.329       | 463.0       |
+| One-vs-Rest (Logistic Regression) | C | 0.533       | 0.707       | 0.608       | 509.0       |
+| One-vs-Rest (Logistic Regression) | D | 0.654       | 0.731       | 0.690       | 557.0       |
+| -------------------------------   |-------|-------------|-------------|-------------|-------------|
+| Random Forest                     |   A   | 0.574       | 0.558       | 0.566       | 450.0       |
+| Random Forest                     |   B   | 0.620       | 0.501       | 0.554       | 463.0       |
+| Random Forest                     |   C   | 0.663       | 0.682       | 0.672       | 509.0       |
+| Random Forest                     |   D   | 0.690       | 0.799       | 0.740       | 557.0       |
+
+
 ### 5. Modify and extend:
 
 Feel free to modify the code and adapt it to your specific needs.
