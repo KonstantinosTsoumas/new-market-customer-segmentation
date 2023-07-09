@@ -111,10 +111,7 @@ Please refer to the exploration notebook for an extensive variable analysis.
 | One-vs-Rest (Logistic Regression) | C | 0.533       | 0.707       | 0.608       | 509.0       |
 | One-vs-Rest (Logistic Regression) | D | 0.654       | 0.731       | 0.690       | 557.0       |
 | -------------------------------   |-------|-------------|-------------|-------------|-------------|
-| Random Forest                     |   A   | 0.574       | 0.558       | 0.566       | 450.0       |
-| Random Forest                     |   B   | 0.620       | 0.501       | 0.554       | 463.0       |
-| Random Forest                     |   C   | 0.663       | 0.682       | 0.672       | 509.0       |
-| Random Forest                     |   D   | 0.690       | 0.799       | 0.740       | 557.0       |
+  |
 
 
 Based on the precision, recall, and accuracy metrics obtained from the model's performance in classifying potential new customers into the existing customer segments (A, B, C, D), the most performant model is Random Forest classifier.
@@ -147,6 +144,7 @@ By understanding the importance of these features, the automobile company can de
 
 However, it's important to note that these three features represent only a subset of the features used in the Random Forest model!
 
+In regard to the AUC curve of Random Forest, the AUC score is 0.85 that indicates that the model has a high discriminatory power for segment D. On the contrary, for segment B, AUC score is only 0.62 and assumes that model may face some challenges when trying to classify customers belonging to the B segment.
 <!--Project Organization: -->
 # Project Organization: 
 ### The project follows the following directory structure:
